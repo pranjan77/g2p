@@ -1,0 +1,12 @@
+#!/bin/bash
+
+#cd /files/packages/application/kbasesearch/
+cd /home/ubuntu/workspace/kb-dataviz/kbase-datavis
+sudo /etc/init.d/nginx stop
+sudo nodemon -w . -w ./public/js -w ./routes -w ./views ./app.js 
+#sudo node_modules/.bin/forever ./app.js
+
+# To kill the existing service
+## cd /files/packages/application/kbasesearch/
+# sudo node_modules/.bin/forever stopall
+
