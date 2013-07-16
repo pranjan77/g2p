@@ -23,7 +23,7 @@ var defaultEnv = process.env.NODE_ENV || "development";
 var optimist = require('optimist')
     .usage("Run the datavis app\nUsage: $0 [options]")
     .boolean(["fake", "debug", "cache"])
-    .default("port",  3000)
+    .default("port",  80)
     .default("env",   defaultEnv)
     .describe("fake",  "Serve only fake data, not from the API")
     .describe("cache", "Use a cache for API endpoints")
