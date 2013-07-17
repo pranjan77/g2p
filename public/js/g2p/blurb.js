@@ -193,7 +193,8 @@ define(["jquery"], function ($) {
         selectedFileContents = undefined;
         modal.setContent(
             '<form id="gwasupload" ><div id="fileInput"><table style="margin-left: auto; margin-right: auto; text-align: left;">'
-              + '<tr><td style="width:140px">Experiment:</td><td><input type="text" id="exp-id" style="width: 150px" /></td></tr>'
+              + '<tr><td style="width:140px">Experiment Name:</td><td><input type="text" id="exp-id" style="width: 150px" name="exp-id"/></td></tr>'
+              + '<tr><td style="width:140px">Trait Name:</td><td><input type="text" id="trait-id" style="width: 150px" name="trait-id"/></td></tr>'
               + '<tr><td>Reference Organism:</td><td><select id="org"><option value="athe">Arabidopsis</option><option value="pop">Populus</option></select></td>'
 		+ '<tr><td>Association File:</td><td><input id="gwas-file" type="file"/></td>'
               + '</td></tr></table></div></form>'
@@ -214,40 +215,46 @@ define(["jquery"], function ($) {
             }
         });
 
-	modal.on('submit', function(e) {
-	    
-	    // Do all the validation here, before call ajax.
-	    //
-	    //var dados = $('#gwasupload').serialize(); 
-	    var data1 = new FormData();
-	    jQuery.each($('#gwas-file')[0].files, function(i, file) {
-		data1.append('file', file);
-	    });
-	    
-	    $.ajax({  
-		type: "POST", 
-		cache: false,
-		contentType: false,
-		processData: false,
-		url: "/uploadFileAction",  
-		data: data1,  
-		success: function( data )  
-		{  
-		    console.log(data);
-		}  
-	    });  
-	    
-	    return false;  
-            //uploadGwas(modal,e);
-        });
-	
-        modal.setButtons('Cancel', 'Upload');
+		modal.on('submit', function(e) {
+			
+			// Do all the validation here, before call ajax.
+			//
+			//var dados = $('#gwasupload').serialize(); 
+			var data1 = new FormData();
+			jQuery.each($('#gwas-file')[0].files, function(i, file) {
+			data1.append('file', file);
+			});
+			data1.append('exp', $('#exp-id').val());
+			data1.append('trait', $('#trait-id').val());
+			data1.append('genome', $('#org option:selected').val();
+			
+			$.ajax({  
+			type: "POST", 
+			cache: false,
+			contentType: false,
+			processData: false,
+			url: "/uploadFileAction",  
+			data: data1,  
+			success: function( data )  {  
+				var flag = '<div class="alert alert-success">'
+							+'<button type="button" class="close" data-dismiss="alert">&times;</button>'
+							+'Success! <strong>' + data.file.name + ' </strong> Uploaded.</div><br/>'
+							+'<center><a href="javascript:window.location.reload();" class="btn btn-success">Refresh</a></center> <button';
+				$('#fileInput').html(flag);
+				}  
+			});  
+			
+			return false;  
+				//uploadGwas(modal,e);
+			});
+		
+			modal.setButtons('Cancel', 'Upload');
 
-        modal.show();
+			modal.show();
 
-        // focus on id input
-        $('#create-id').focus();
-    }
+			// focus on id input
+			$('#create-id').focus();
+		}
 
     // special Modal object used for the various modals
     function Modal() {
