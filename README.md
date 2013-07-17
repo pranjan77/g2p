@@ -114,6 +114,8 @@ Please refer to the [API documentation](https://github.com/gingi/kbase-datavis/s
 ## License
 
     Copyright (c) 2012-2013 Shiran Pasternak, <shiranpasternak at gmail.com>
+    Copyright (c) 2012-2013 Priya Ranjan, <pranjan77 at gmail.com>
+    Copyright (c) 2012-2013 Syed Mustafa, <mustafahsyed at hotmail.com>
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to
