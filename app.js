@@ -10,7 +10,7 @@ var express  = require('express'),
     fs       = require('fs'),
     util     = require('util'),
     gzippo   = require('gzippo'),
-	rest	 = require('restler');
+	dateFormat = require('dateformat');
     
 var kbase = require('./src/api/kbase');
 
@@ -693,14 +693,25 @@ app.post('/uploadFileAction', uploadHandler, function( req, res ) {
 	var url = 'http://140.221.84.236:8000/node';
 	var un = 'kbasetest';
 	var ps = '@Suite525';
+	var now  = new Date();
+	var rest = require('restler');
 
 	console.dir(req.body);
 
 
 	var attributes = {};
-	attributes.genome = req.body.genome;
-	attributes.experimentName = req.body.exp;
-	attributes.traitName = req.body.trait;
+	attributes.data_type = 'gwas';
+	attributes.kbase_genome_id = req.body.genome_id;
+	attributes.kbase_genome_name = req.body.genome_name;
+	attributes.experiment_name = req.body.exp;
+	attributes.trait_name = req.body.trait;
+	attributes.user_name = un;
+	attributes.user_file_name = req.files.file.name;
+	attributes.user_file_id = un + '.file.' +dateFormat(now, 'ddmmyy') + '.' + dateFormat(now, 'hhMMss');
+	attributes.experiment_id = un + '.experiment.' +dateFormat(now, 'ddmmyy') + '.' + dateFormat(now, 'hhMMss');
+	attributes.trait_id = un + '.trait.' +dateFormat(now, 'ddmmyy') + '.' + dateFormat(now, 'hhMMss');
+
+
 	var fd = fs.openSync(res.locals.ATTRIB, 'a+', 0666);
 	fs.writeSync(fd, JSON.stringify(attributes));
 	fs.closeSync(fd);
@@ -714,6 +725,9 @@ app.post('/uploadFileAction', uploadHandler, function( req, res ) {
 			'upload': rest.file(res.locals.TARGET)
 		}
 	}).on('complete', function(data) {
+		console.dir(data);
+		res.send(200, req.files);
+	}).on('error', function(data) {
 		console.dir(data);
 		res.send(200, req.files);
 	});

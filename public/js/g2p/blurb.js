@@ -226,7 +226,8 @@ define(["jquery"], function ($) {
 			});
 			data1.append('exp', $('#exp-id').val());
 			data1.append('trait', $('#trait-id').val());
-			data1.append('genome', $('#org option:selected').val();
+			data1.append('genome_id', $('#org option:selected').val());
+			data1.append('genome_name', $('#org option:selected').text());
 			
 			$.ajax({  
 			type: "POST", 
