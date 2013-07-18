@@ -9,7 +9,8 @@ var express  = require('express'),
     path     = require('path'),
     fs       = require('fs'),
     util     = require('util'),
-    gzippo   = require('gzippo');
+    gzippo   = require('gzippo'),
+	dateFormat = require('dateformat');
     
 var kbase = require('./src/api/kbase');
 
@@ -18,6 +19,26 @@ var ONE_DAY  = 86400;
 
 var RANDOM_NEIGHBORHOOD_NODES = 20;
 var MAX_ITEMS = 300;
+
+/*
+ * Upload related stuff
+ */
+
+var fs = require('fs'),
+    mkdirp = require('mkdirp');
+
+// Directories for uploaded files
+var publicFolder = '/public/';
+var uploadFolder = 'uploads';
+if (!fs.existsSync(__dirname + publicFolder + uploadFolder )) mkdirp.sync(__dirname + publicFolder + uploadFolder);
+
+var tmpUpload = '/public/uploads/tmp/';
+if (!fs.existsSync(__dirname + tmpUpload)) mkdirp.sync(__dirname + tmpUpload);
+
+var uploadDirBase = '/public/uploads/actual/';
+if (!fs.existsSync(__dirname + uploadDirBase)) mkdirp.sync(__dirname + uploadDirBase);
+// End of upload stuff
+
 
 var defaultEnv = process.env.NODE_ENV || "development";
 var optimist = require('optimist')
@@ -85,8 +106,8 @@ app.configure(function() {
         app.use(express.logger({ stream: stream }));
     } else {
         app.use(express.logger('dev'));
-        app.use(express.cookieParser('your secret here'));
-        app.use(express.session());
+        app.use(express.cookieParser('g2p'));
+		app.use(express.session({key: 'express.sid'}));
         app.use(express.errorHandler());
     }
     app.use(gzippo.compress());
@@ -99,13 +120,46 @@ app.configure(function() {
             expire: ONE_DAY
         }));
     }
-    app.use(express.bodyParser());
+	app.use(express.bodyParser({
+		uploadDir: __dirname + tmpUpload,
+		keepExtensions: true
+	}));
     app.use(express.methodOverride());
+	app.use(function(req, res, next){
+	  res.locals.session = req.session;
+	  next();
+	});
     app.use(app.router);
     app.use(require('less-middleware')({
         src: PUBLIC_DIR
     }));
 });
+
+uploadHandler = function( req, res, next ) {
+  var fileObj = req.files.file;
+  var tmpPath = fileObj.path;
+  var targetPath = __dirname + uploadDirBase + req.sessionID;
+
+  if (!fs.existsSync(targetPath)) {
+    mkdirp.sync(targetPath);
+  }
+  var targetFile = __dirname + uploadDirBase + req.sessionID + '/' + fileObj.name;
+  var attributeFile = __dirname + uploadDirBase + req.sessionID + '/' + fileObj.name + '.attrib';
+  var DBPATH = '/' + uploadFolder + '/actual/' + req.sessionID + '/' + fileObj.name;
+  var DBNAME = fileObj.name;
+  res.locals.DBPATH = DBPATH;
+  res.locals.DBNAME = DBNAME;
+  res.locals.ATTRIB = attributeFile;
+  res.locals.TARGET = targetFile;
+
+  fs.rename(tmpPath, targetFile, function(err) {
+    if (err) next(err);
+    fs.unlink(tmpPath, function() {
+      if (err) throw err;
+        next();
+    });
+  });
+};
 
 http.createServer(app)
     .listen(app.get('port'), function() {
@@ -632,6 +686,54 @@ app.get('/streaming', function (request, response, next) {
             clearTimeout(this);
         }
     }, 500);
+});
+
+app.post('/uploadFileAction', uploadHandler, function( req, res ) {
+
+	var url = 'http://140.221.84.236:8000/node';
+//	var un = 'kbasetest';
+//	var ps = '@Suite525';
+	var un = 'gpuser';
+	var ps = 'bescdemo';
+	var now  = new Date();
+	var rest = require('restler');
+
+	console.dir(req.body);
+
+
+	var attributes = {};
+	attributes.data_type = 'gwas';
+	attributes.kbase_genome_id = req.body.genome_id;
+	attributes.kbase_genome_name = req.body.genome_name;
+	attributes.experiment_name = req.body.exp;
+	attributes.trait_name = req.body.trait;
+	attributes.user_name = un;
+	attributes.user_file_name = req.files.file.name;
+	attributes.user_file_id = un + '.file.' +dateFormat(now, 'ddmmyy') + '.' + dateFormat(now, 'hhMMss');
+	attributes.experiment_id = un + '.experiment.' +dateFormat(now, 'ddmmyy') + '.' + dateFormat(now, 'hhMMss');
+	attributes.trait_id = un + '.trait.' +dateFormat(now, 'ddmmyy') + '.' + dateFormat(now, 'hhMMss');
+
+
+	var fd = fs.openSync(res.locals.ATTRIB, 'a+', 0666);
+	fs.writeSync(fd, JSON.stringify(attributes));
+	fs.closeSync(fd);
+
+	rest.post(url, {
+		multipart: true,
+		username: un,
+		password: ps,
+		data: {
+			'attributes': rest.file(res.locals.ATTRIB),
+			'upload': rest.file(res.locals.TARGET)
+		}
+	}).on('complete', function(data) {
+		console.dir(data);
+		res.send(200, req.files);
+	}).on('error', function(data) {
+		console.dir(data);
+		res.send(200, req.files);
+	});
+
 });
 
 (function () {
