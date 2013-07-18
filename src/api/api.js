@@ -4741,7 +4741,6 @@ function Genotype_PhenotypeAPI(url, auth, auth_cb) {
     var _auth = auth ? auth : { 'token' : '', 'user_id' : ''};
     var _auth_cb = auth_cb;
 
-
     this.genomes_with_trait = function (_callback, _errorCallback) {
         return json_call_ajax("Genotype_PhenotypeAPI.genomes_with_trait",
             [], 1, _callback, _errorCallback);

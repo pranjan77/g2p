@@ -691,8 +691,10 @@ app.get('/streaming', function (request, response, next) {
 app.post('/uploadFileAction', uploadHandler, function( req, res ) {
 
 	var url = 'http://140.221.84.236:8000/node';
-	var un = 'kbasetest';
-	var ps = '@Suite525';
+//	var un = 'kbasetest';
+//	var ps = '@Suite525';
+	var un = 'gpuser';
+	var ps = 'bescdemo';
 	var now  = new Date();
 	var rest = require('restler');
 

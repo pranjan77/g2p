@@ -4,7 +4,7 @@
         "fn":  "KBaseNetworks"
     },
     "g2p": {
-        "url": "http://kbase.us/services/genotype_phenotype_api",
+        "url": "http://localhost:7067",
         "fn":  "Genotype_PhenotypeAPI"
     },
     "cdmi": {
